@@ -1,0 +1,38 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "cross",
+      "displayName": "Cross-compile (qemu tests)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/cross-toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "BUILD_TESTING": "ON",
+        "DEV_TOOLING": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "cross",
+      "configurePreset": "cross"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "cross",
+      "configurePreset": "cross",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

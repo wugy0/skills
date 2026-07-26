@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Editors / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# skills CLI lockfile is intentionally tracked when present
+# (uncomment to ignore if you don't want to pin versions)
+# skills-lock.json
