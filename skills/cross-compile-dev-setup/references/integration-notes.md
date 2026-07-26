@@ -38,31 +38,33 @@ dynamically-linked binaries fail to start.
 The generated `run-<name>.sh` scripts replicate this for direct invocation,
 useful when debugging a single failing test with gdb-under-qemu or extra flags.
 
-## Why wrap the compiler for STAGING_DIR
+## STAGING_DIR is a compiler runtime requirement
 
-OpenWrt's compiler is itself a shell wrapper that `exec`s unqualified tool names
-and aborts if `STAGING_DIR` is unset. Two consequences:
+Some OpenWrt GCC distributions encode target package paths in their GCC
+`specs` file, for example `-idirafter %:getenv(STAGING_DIR /usr/include)` and
+`-L %:getenv(STAGING_DIR /usr/lib)`. In that case `STAGING_DIR` is required for
+preprocessing, compiling, and linking even when invoking the compiler by its
+absolute path.
 
-1. The toolchain's bin dir must be on `PATH` (the wrapper execs `arm-...-g++` by
-   name).
-2. `STAGING_DIR` must be present for **every** invocation, including links.
-   `CMAKE_<LANG>_COMPILER_LAUNCHER` does not reliably propagate environment into
-   the link step, so we wrap the compiler with `compiler-env-wrapper.sh` that
-   exports the variable then `exec`s the real compiler.
+Keep `CMAKE_C_COMPILER` / `CMAKE_CXX_COMPILER` set to those absolute paths so
+`compile_commands.json` stays truthful. Do not add the compiler directory to
+`PATH` just to locate it. `set(ENV{STAGING_DIR} ...)` covers CMake configure
+and compiler discovery; make the variable available separately to the build
+process (via its caller environment or a build preset) because configure and
+build are distinct processes.
 
-Toolchains without this quirk should skip the wrapper entirely.
+## .clangd: Clang target and queried system headers
 
-## .clangd and the query-driver limitation
+clangd parses with its own Clang frontend, so GCC-only flags (`-mfloat-abi=`,
+`-mfpu=`) appear as unsupported-option errors and are removed. It must also
+receive a Clang-compatible `--target` triple: do not assume a vendor GCC triple
+will parse or encode the target ABI correctly.
 
-clangd parses with its own clang frontend, so GCC-only flags (`-mfloat-abi=`,
-`-mfpu=`) appear as "unsupported option" errors. `gen_clangd.py` removes those
-and adds `--sysroot=<target_root>` so clang can find headers.
-
-But full fidelity (correct builtin macros, exact system include paths) requires
-clangd to *ask the cross compiler* via `--query-driver`. That is a clangd
-**launch flag**, not a `.clangd` option, so it can't be generated into the config
-file. The script prints the recommended `--query-driver=<glob>` for the user to
-add to their editor's clangd arguments.
+`gen_clangd.py` invokes the real cross C++ compiler with `-E -x c++ -v -`, then
+extracts the reported C++ system include search directories. It writes those as
+`-isystem` entries together with `--target` and `--sysroot=<target_root>`. This
+keeps the real compiler in `compile_commands.json` while giving clangd the
+headers and ABI semantics it cannot reliably infer from a vendor driver name.
 
 ## compile_commands.json symlink
 

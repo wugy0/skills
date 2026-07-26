@@ -82,8 +82,7 @@ Copy from this skill's `assets/` into the project, preserving layout:
     │   ├── CrossCompileTesting.cmake          <- assets/cmake/modules/
     │   └── ClangdIntegration.cmake
     ├── scripts/
-    │   ├── gen_clangd.py                      <- assets/cmake/scripts/
-    │   └── compiler-env-wrapper.sh            (chmod +x)
+    │   └── gen_clangd.py                      <- assets/cmake/scripts/
     └── toolchains/
         └── cross-toolchain.cmake              <- assets/cmake/toolchains/
 ```
@@ -91,11 +90,12 @@ Copy from this skill's `assets/` into the project, preserving layout:
 ### 3. Adapt the toolchain file
 
 Edit the `EDIT ME` blocks in `cross-toolchain.cmake`: set the compiler defaults,
-staging dir, target rootfs, arch, and qemu binary. If the vendor compiler needs
-no env wrapper (most don't), swap the wrapper lines for plain
-`set(CMAKE_C_COMPILER ...)` / `set(CMAKE_CXX_COMPILER ...)`. OpenWrt's wrapper
-aborts without `STAGING_DIR`, which is why the template wraps the compiler —
-CMake's compiler launcher does not reliably propagate env into the link step.
+staging dir, target rootfs, Clang-compatible target triple, arch, and qemu
+binary. Keep `CMAKE_C_COMPILER` and `CMAKE_CXX_COMPILER` as the real absolute
+compiler paths so `compile_commands.json` records them directly. If a vendor
+compiler requires an environment variable such as `STAGING_DIR`, export it for
+both configure and build commands; do not use a compiler wrapper or add the
+compiler directory to `PATH` merely to make CMake find an already absolute path.
 
 ### 4. Wire the root CMakeLists
 
@@ -141,9 +141,11 @@ cat .clangd && ls -l compile_commands.json # dev tooling present
   targets only; the app itself can stay at an older standard.
 - **`file(GENERATE)` scripts are not executable.** `chmod +x build/*/run-*.sh`
   after building, or run them via `sh`.
-- **`.clangd` alone can't set `--query-driver`** — that's a clangd launch flag.
-  `gen_clangd.py` prints the exact `--query-driver=<glob>` to add to the editor's
-  clangd arguments for full header resolution.
+- **Use a Clang-compatible target triple.** A vendor GCC triple may not parse
+  in Clang. Set `CROSS_CLANG_TARGET_TRIPLE` explicitly (for example,
+  `armv7-unknown-linux-musleabihf`), then generate `.clangd` with that target,
+  the target sysroot, and C++ system include paths queried from the real cross
+  compiler. No editor-specific `--query-driver` argument is needed.
 - **SDK CMake may be old.** A vendor SDK's bundled CMake (e.g. 3.19) can't read
   preset `version: 3`. That's fine — presets are dev-only; the production package
   build invokes CMake directly with the vendor's `TARGET_CC` and no presets.

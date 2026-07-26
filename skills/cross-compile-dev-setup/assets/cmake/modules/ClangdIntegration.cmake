@@ -1,11 +1,11 @@
 # Developer tooling: compile_commands.json symlink + .clangd generation
-# (project-agnostic template). Gated behind <PROJECT>_DEV_TOOLING so production
-# builds skip it. Expects the toolchain file to export CROSS_TARGET_ROOTFS and
-# CROSS_COMPILER cache variables (see toolchain template).
+# (project-agnostic template). Gated behind DEV_TOOLING so production builds
+# skip it. Expects the toolchain file to export CROSS_CLANG_TARGET_TRIPLE,
+# CROSS_TARGET_ROOTFS, and CROSS_COMPILER cache variables.
 
 include_guard(GLOBAL)
 
-# dev_tooling_enable(<SOURCE_DIR> <BINARY_DIR>)
+# dev_tooling_enable()
 #
 # Creates a root compile_commands.json symlink (refreshed every build) and
 # generates a .clangd config tuned for the cross compiler.
@@ -34,9 +34,9 @@ function(dev_tooling_enable)
         set(_compiler "${CMAKE_CXX_COMPILER}")
     endif()
 
-    set(_add_args "")
-    if(NOT CROSS_TARGET_ROOTFS STREQUAL "")
-        list(APPEND _add_args "--add=--sysroot=${CROSS_TARGET_ROOTFS}")
+    if(NOT CROSS_TARGET_ROOTFS OR NOT CROSS_CLANG_TARGET_TRIPLE)
+        message(STATUS "cross target metadata unavailable; skipping .clangd generation")
+        return()
     endif()
 
     execute_process(
@@ -45,7 +45,8 @@ function(dev_tooling_enable)
             --compiler "${_compiler}"
             --compile-commands-dir "${CMAKE_SOURCE_DIR}"
             --output "${CMAKE_SOURCE_DIR}/.clangd"
-            ${_add_args}
+            --target-triple "${CROSS_CLANG_TARGET_TRIPLE}"
+            --sysroot "${CROSS_TARGET_ROOTFS}"
         RESULT_VARIABLE _rv
     )
     if(NOT _rv EQUAL 0)
