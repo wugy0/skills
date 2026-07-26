@@ -39,6 +39,19 @@ skills/
 
 ## 本地开发
 
-本仓库即唯一真相源。`npx skills` 会按 agent 选择用户级安装目录；对 pi，
-当前安装目标是 `~/.pi/agent/skills/`。改动请回到本仓库，push 后用
-`npx skills update cross-compile-dev-setup -g -y` 同步。
+本仓库是唯一真相源。维护本仓库的开发机上，Pi 的全局 skill 目录应软链接至
+本仓库，因此改动立即对 Pi 生效：
+
+```bash
+ln -sfn ~/work/skills/skills/cross-compile-dev-setup \
+  ~/.pi/agent/skills/cross-compile-dev-setup
+```
+
+在其他机器上，`npx skills` 会按 agent 选择用户级安装目录；对 Pi，安装目标是
+`~/.pi/agent/skills/`。此类消费端在 pull 新版本后执行：
+
+```bash
+npx skills update cross-compile-dev-setup -g -y
+```
+
+维护机不要执行该更新命令，以免它将软链接替换为独立副本。
