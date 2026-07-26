@@ -8,13 +8,13 @@ Cursor、Codex 等 40+ agent。
 
 ```bash
 # 安装全部 skill（全局，进用户目录，跨项目可见）
-npx skills add <github-user>/agent-skills -g
+npx skills add wugy0/skills -g
 
 # 只装某一个
-npx skills add <github-user>/agent-skills@cross-compile-dev-setup -g
+npx skills add wugy0/skills@cross-compile-dev-setup -g
 
-# 升级已安装的
-npx skills update
+# 升级指定 skill
+npx skills update cross-compile-dev-setup -g -y
 ```
 
 不加 `-g` 会装到当前项目的 `.agents/skills/`。
@@ -39,5 +39,6 @@ skills/
 
 ## 本地开发
 
-本仓库即唯一真相源。本地 `~/.agents/skills/` 下的副本是安装产物，
-改动请回到本仓库，push 后用 `npx skills update` 同步。
+本仓库即唯一真相源。`npx skills` 会按 agent 选择用户级安装目录；对 pi，
+当前安装目标是 `~/.pi/agent/skills/`。改动请回到本仓库，push 后用
+`npx skills update cross-compile-dev-setup -g -y` 同步。
