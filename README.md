@@ -39,16 +39,16 @@ skills/
 
 ## 本地开发
 
-本仓库是唯一真相源。维护本仓库的开发机上，Pi 的全局 skill 目录应软链接至
-本仓库，因此改动立即对 Pi 生效：
+本仓库是唯一真相源。维护本仓库的开发机上，将 skill 软链接到 Agent Skills
+跨工具共享的全局目录，因此 pi、Claude Code、Codex 等兼容 harness 都能立即发现：
 
 ```bash
 ln -sfn ~/work/skills/skills/cross-compile-dev-setup \
-  ~/.pi/agent/skills/cross-compile-dev-setup
+  ~/.agents/skills/cross-compile-dev-setup
 ```
 
-在其他机器上，`npx skills` 会按 agent 选择用户级安装目录；对 Pi，安装目标是
-`~/.pi/agent/skills/`。此类消费端在 pull 新版本后执行：
+在其他机器上，`npx skills` 会按目标 agent 选择用户级安装目录。此类消费端在 pull
+新版本后执行：
 
 ```bash
 npx skills update cross-compile-dev-setup -g -y
