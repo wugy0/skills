@@ -6,7 +6,7 @@
 #
 # Env vars (all optional if you hardcode defaults below):
 #   CROSS_CC / CROSS_CXX         absolute compiler paths
-#   CROSS_STAGING_DIR            SDK staging dir (exported as STAGING_DIR)
+#   CROSS_STAGING_DIR            optional vendor staging dir (exported as STAGING_DIR)
 #   CROSS_TARGET_ROOT            target rootfs used by qemu -L
 #   CROSS_CLANG_TARGET_TRIPLE    Clang-compatible target triple for clangd
 #   CROSS_QEMU                   qemu-user binary (default qemu-<arch>)
@@ -46,14 +46,16 @@ if(_qemu STREQUAL "")
     set(_qemu "${_qemu_default}")
 endif()
 
-foreach(_required IN ITEMS _cc _cxx _staging _target_root)
+foreach(_required IN ITEMS _cc _cxx _target_root)
     if(NOT EXISTS "${${_required}}")
         message(FATAL_ERROR
             "Cross toolchain path not found: ${${_required}}\n"
-            "Build the target once, or set CROSS_CC / CROSS_CXX / "
-            "CROSS_STAGING_DIR / CROSS_TARGET_ROOT.")
+            "Build the target once, or set CROSS_CC / CROSS_CXX / CROSS_TARGET_ROOT.")
     endif()
 endforeach()
+if(NOT _staging STREQUAL "" AND NOT EXISTS "${_staging}")
+    message(FATAL_ERROR "Cross staging dir not found: ${_staging}")
+endif()
 if(_clang_target_triple STREQUAL "")
     message(FATAL_ERROR
         "Set CROSS_CLANG_TARGET_TRIPLE or _clang_target_triple_default "
@@ -63,12 +65,14 @@ endif()
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR "${_arch}")
 
-# Some vendor compilers read STAGING_DIR from GCC specs to find target package
-# headers and libraries. This is an execution requirement, not compiler lookup:
-# use the absolute compiler paths below and do not add their bin directory to
-# PATH. Ensure the build command also inherits STAGING_DIR when the compiler
-# requires it.
-set(ENV{STAGING_DIR} "${_staging}")
+# OpenWrt/Tina-style vendor compilers may read STAGING_DIR from GCC specs to
+# find target package headers and libraries. This is an optional execution
+# requirement, not compiler lookup: use the absolute compiler paths below and
+# do not add their bin directory to PATH. When configured, ensure the build
+# command also inherits STAGING_DIR.
+if(NOT _staging STREQUAL "")
+    set(ENV{STAGING_DIR} "${_staging}")
+endif()
 set(CMAKE_C_COMPILER "${_cc}" CACHE STRING "" FORCE)
 set(CMAKE_CXX_COMPILER "${_cxx}" CACHE STRING "" FORCE)
 

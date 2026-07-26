@@ -90,12 +90,13 @@ Copy from this skill's `assets/` into the project, preserving layout:
 ### 3. Adapt the toolchain file
 
 Edit the `EDIT ME` blocks in `cross-toolchain.cmake`: set the compiler defaults,
-staging dir, target rootfs, Clang-compatible target triple, arch, and qemu
-binary. Keep `CMAKE_C_COMPILER` and `CMAKE_CXX_COMPILER` as the real absolute
-compiler paths so `compile_commands.json` records them directly. If a vendor
-compiler requires an environment variable such as `STAGING_DIR`, export it for
-both configure and build commands; do not use a compiler wrapper or add the
-compiler directory to `PATH` merely to make CMake find an already absolute path.
+target rootfs, Clang-compatible target triple, arch, and qemu binary. Configure
+a staging dir only for SDKs that require one, such as OpenWrt/Tina. Keep
+`CMAKE_C_COMPILER` and `CMAKE_CXX_COMPILER` as the real absolute compiler paths
+so `compile_commands.json` records them directly. If a vendor compiler requires
+an environment variable such as `STAGING_DIR`, export it for both configure and
+build commands; do not use a compiler wrapper or add the compiler directory to
+`PATH` merely to make CMake find an already absolute path.
 
 ### 4. Wire the root CMakeLists
 
