@@ -60,31 +60,42 @@ Universal Ctags bin directory on `PATH` before configuring Companion.
 Disable ctagsx or any other extension that registers a Definition Provider;
 two providers produce duplicate or inconsistent Ctrl+click results.
 
-## 3. Create a selective tag generator
+## 3. Generate a selective tag script for this SDK
 
-Copy `assets/update-tags.sh` into the SDK as `.vscode-ctags/update-tags.sh`,
-make it executable, and adapt only its source-root variables and active
-architectures. It indexes:
+Do **not** copy a fixed script from this skill. First inspect the SDK's actual
+source roots, generated directories, active architectures, and configuration
+file conventions. Then create a project-local generator only for the useful
+kinds of navigation the user requested.
+
+Common candidates are:
 
 - Makefiles (`Makefile`, `GNUmakefile`, `*.mk`, `*.mak`)
-- shell scripts and shell functions
+- shell scripts, when shell-function navigation is useful
 - Linux and U-Boot Kconfig files for one active architecture
-- Buildroot/OpenWrt `Config.in*` and `Kconfig*`
-- `.buildconfig`-style exported build variables using the Make parser
+- Buildroot/OpenWrt `Config.in*` and `Kconfig*`, when those trees are present
+- a `.buildconfig`-style file only when it exists and its exported variables
+  need navigation
 
-It excludes generated directories and writes a sorted `.tags` at the SDK root.
-Run the generator manually after Kconfig/Makefile changes; do not enable a
-watcher over a large vendor SDK.
+Exclude generated outputs, staging trees, downloads, and prebuilt toolchains.
+Write a sorted `.tags` at the SDK root and run the generator manually after
+Kconfig/Makefile changes; do not enable a watcher over a large vendor SDK.
 
 Why the parser choices matter:
 
 - Universal Ctags' Kconfig parser writes both `FOO` and `CONFIG_FOO` entries,
   enabling `.config` -> Kconfig navigation.
 - Buildroot/OpenWrt call their Kconfig files `Config.in*`, so extend the
-  Kconfig filename map.
-- The shell parser tags functions but not exported variables. Parsing
-  `.buildconfig` with the Make parser provides variable definitions while the
-  VS Code language mode remains `shellscript` for editing.
+  Kconfig filename map only when those trees are indexed.
+- The shell parser tags functions but not exported variables. If a
+  `.buildconfig` file needs variable navigation, parse that one file with the
+  Make parser while keeping its VS Code language mode as `shellscript`.
+
+Build the script incrementally. First benchmark each source category using a
+temporary tag file. If `ctags` consumes CPU without updating the final tags
+file, it may be stuck in a parser: bisect the input list, exclude the exact
+third-party file, document the reason in the project script, and preserve all
+other inputs. Add a `TAGS_FILE` override so full verification can write a
+temporary output instead of replacing the working `.tags`.
 
 ## 4. Configure Ctags Companion
 
@@ -129,74 +140,21 @@ After modifying settings, reload the VS Code window. Test all three surfaces:
 - `Ctrl+Shift+O` for current-file symbols
 - `Ctrl+T` for workspace symbols
 
-## 5. Workspace file associations and JSONC formatting
+## 5. Keep unrelated editor policy out of this skill
 
-Associate generated configuration files only for readable editing; this does
-not change how Ctags Companion resolves definitions:
+This skill configures code navigation only. Do not add generic JSON/JSONC
+formatting, Prettier, whitespace, theme, or unrelated workspace preferences
+unless the user explicitly asks for them. File associations are optional and
+should be added only when they materially improve the requested navigation or
+readability.
 
-```jsonc
-{
-  "files.associations": {
-    "**/.buildconfig": "shellscript",
-    "**/.config": "properties",
-    "**/*defconfig": "properties"
-  },
-  "files.exclude": { "**/.tags": true },
-  "files.watcherExclude": { "**/.tags": true },
-  "search.exclude": { "**/.tags": true }
-}
-```
+## 6. DeviceTree
 
-`properties` is VS Code's simple `KEY=value` language mode. It gives `.config`
-files basic highlighting but does not understand Kconfig.
-
-A `.code-workspace` file is JSONC, not strict JSON: comments are allowed.
-Prefer VS Code's built-in formatter for hand-maintained JSONC and preserve
-compact existing arrays/objects:
-
-```jsonc
-{
-  "json.format.keepLines": true,
-  "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
-    "editor.formatOnSave": false,
-    "editor.tabSize": 2
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
-    "editor.formatOnSave": false,
-    "editor.tabSize": 2
-  }
-}
-```
-
-Prettier is useful when a repository mandates it, but `printWidth` is only a
-soft target and it may expand short JSON structures. Do not add Prettier merely
-to obtain compact JSONC.
-
-## 6. Configure DeviceTree separately
-
-Use the DeviceTree extension's workspace configuration to point at the kernel
-and bootloader headers/bindings. Typical settings have this shape:
-
-```jsonc
-{
-  "devicetree.cwd": "${workspaceFolder}",
-  "devicetree.defaultIncludePaths": [
-    "kernel/include",
-    "bootloader/include"
-  ],
-  "devicetree.defaultBindingType": "DevicetreeOrg",
-  "devicetree.defaultDeviceOrgTreeBindings": [
-    "kernel/Documentation/devicetree/bindings",
-    "bootloader/Documentation/devicetree/bindings"
-  ]
-}
-```
-
-Check the installed extension's setting names rather than blindly copying the
-example: vendor forks and extension versions differ. Do not add DTS/DTSI to the
-ctags generator unless the DeviceTree extension is unavailable.
+Use a dedicated DeviceTree extension instead of ctags for DTS/DTSI. For
+`andy9a9.vscode-devicetree`, install it in the same local or remote VS Code
+environment as the SDK; no generic workspace configuration is required. Add
+extension-specific settings only after verifying that a particular SDK's include
+or binding lookup fails.
 
 ## 7. Verify and maintain
 
