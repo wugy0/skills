@@ -25,6 +25,7 @@ npx skills update cross-compile-dev-setup -g -y
 | Skill | 说明 |
 |---|---|
 | [`cross-compile-dev-setup`](skills/cross-compile-dev-setup/SKILL.md) | 为嵌入式 Linux 应用建立 CMake 交叉编译开发流程：preset、qemu-user 测试、GoogleTest、`compile_commands.json` 与 `.clangd`。 |
+| [`embedded-sdk-vscode-navigation`](skills/embedded-sdk-vscode-navigation/SKILL.md) | 为大型嵌入式 Linux SDK 配置 VS Code 导航：Universal Ctags/Ctags Companion、Kconfig、Makefile、Shell、`.config` 与 DeviceTree。 |
 
 ## 目录结构
 
