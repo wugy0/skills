@@ -1,6 +1,6 @@
 ---
 name: embedded-sdk-vscode-navigation
-description: Configure a practical VS Code navigation environment for a large embedded Linux SDK, including Linux kernel, U-Boot, Buildroot, OpenWrt, Kconfig, Makefiles, shell build scripts, generated .config files, and DeviceTree sources. Use this skill whenever the user wants Ctrl+click/F12 navigation for CONFIG_* or Make variables, asks to configure Universal Ctags, Ctags Companion, ctagsx, VS Code DeviceTree support, Kconfig/Makefile navigation, or wants a maintainable .code-workspace setup for a vendor SoC Linux SDK — even if they do not mention this skill explicitly.
+description: Configure a practical VS Code navigation environment for a large embedded Linux SDK, including Linux kernel, U-Boot, Buildroot, OpenWrt, Kconfig, Makefiles, shell build scripts, generated .config files, and DeviceTree sources. Use this skill whenever the user wants Ctrl+click/F12 navigation for CONFIG_* or Make variables, asks to configure Universal Ctags, Ctags Companion, ctagsx, VS Code DeviceTree support (dts-lsp / KyleMicallefBonnici.dts-lsp), Kconfig/Makefile navigation, or wants a maintainable .code-workspace setup for a vendor SoC Linux SDK — even if they do not mention this skill explicitly.
 ---
 
 # Embedded SDK VS Code Navigation
@@ -10,8 +10,8 @@ project-private assumptions. The useful split is:
 
 - **Ctags Companion + Universal Ctags**: Kconfig symbols, Make variables and
   targets, and shell functions.
-- **DeviceTree extension**: DTS/DTSI syntax, includes, bindings, and semantic
-  navigation. Prefer it over ctags for DeviceTree.
+- **dts-lsp** (`KyleMicallefBonnici.dts-lsp`): DTS/DTSI syntax, includes,
+  bindings, and semantic navigation. Prefer it over ctags for DeviceTree.
 - **Language servers**: C/C++ and Python navigation. Do not try to replace
   clangd or a language server with ctags.
 
@@ -44,6 +44,7 @@ Install these in the **same VS Code environment** that opens the remote SDK
 - Universal Ctags
 - Ctags Companion (`gediminaszlatkus.ctags-companion`)
 - a DeviceTree extension appropriate for the project
+  (prefer `KyleMicallefBonnici.dts-lsp`; see §6)
 
 Verify both Ctags executables are on `PATH`:
 
@@ -150,11 +151,126 @@ readability.
 
 ## 6. DeviceTree
 
-Use a dedicated DeviceTree extension instead of ctags for DTS/DTSI. For
-`andy9a9.vscode-devicetree`, install it in the same local or remote VS Code
-environment as the SDK; no generic workspace configuration is required. Add
-extension-specific settings only after verifying that a particular SDK's include
-or binding lookup fails.
+Use a dedicated DeviceTree language server instead of ctags for DTS/DTSI.
+Prefer **`KyleMicallefBonnici.dts-lsp`** (a full LSP with go-to-definition/
+references, hover, diagnostics, completions, formatting). Plain syntax-only
+alternatives such as `andy9a9.vscode-devicetree` are acceptable when you only
+need highlighting and no semantic navigation, but dts-lsp is the better default
+for navigation and validation.
+
+### Configuration keys
+
+dts-lsp is configured under the `devicetree.*` keys (dotted, flat in `settings`):
+
+- `devicetree.cwd` — base directory; most other paths are resolved against it.
+  In a multi-root workspace use `${workspaceFolder:<folderName>}` variables
+  (they work and keep the config portable — no hardcoded home paths).
+- `devicetree.defaultIncludePaths` — directories searched for `#include` of
+  `.dtsi` and `dt-bindings/*.h`/C headers.
+- `devicetree.defaultBindingType` — `Zephyr` (default) or `DevicetreeOrg`
+  (experimental; for Linux kernels).
+- `devicetree.defaultZephyrBindings` — Zephyr binding YAML dirs.
+- `devicetree.defaultDeviceOrgTreeBindings` — Devicetree.org binding schema
+  dirs (e.g. the kernel's `Documentation/devicetree/bindings`).
+- `devicetree.defaultDeviceOrgBindingsMetaSchema` — optional dt-schema
+  `meta-schemas` dir (usually empty; dt-schema is a separate checkout).
+- `devicetree.contexts` / `preferredContext` — explicit contexts (see below).
+
+### Linux kernel example
+
+```jsonc
+// ${workspaceFolder:kernel} expands to the kernel workspace-root path;
+// verified to work in dts-lsp and keeps the config portable
+"devicetree.cwd": "${workspaceFolder:kernel}",
+"devicetree.defaultIncludePaths": [
+    "${workspaceFolder:kernel}/arch/arm/boot/dts",
+    "${workspaceFolder:kernel}/arch/arm64/boot/dts/rockchip",
+    "${workspaceFolder:kernel}/include"          // for dt-bindings/*.h
+],
+"devicetree.defaultBindingType": "DevicetreeOrg",
+"devicetree.defaultDeviceOrgTreeBindings": [
+    "${workspaceFolder:kernel}/Documentation/devicetree/bindings"
+],
+"devicetree.defaultDeviceOrgBindingsMetaSchema": []
+```
+
+Include paths must cover where the actual dtsi files live and where the
+`dt-bindings/*.h` headers are. For a Rockchip board the active arch matters:
+check `RK_ARCH` / `RK_KERNEL_DTS` in the SDK `BoardConfig*.mk` to pick
+`arch/arm*/boot/dts/...` correctly.
+
+### Multi-root workspace gotcha (important)
+
+In a **multi-root `.code-workspace`**, dts-lsp does **not** reliably resolve
+devicetree settings from a per-folder `kernel/.vscode/settings.json`; the
+server log shows the cwd falling back to the main workspace root and
+`includePaths` coming back empty (default `Zephyr` binding). Put the
+`devicetree.*` settings in the **workspace file's top-level `settings`** block
+(global, folder-independent), not in a sub-folder `.vscode/settings.json`.
+
+### Multiple SDKs (kernel + uboot) with explicit contexts
+
+The global `devicetree.defaultIncludePaths`/`cwd` are a **single** set, so they
+cannot serve two SDKs with different dts layouts at once (e.g. kernel and
+U-Boot). Define one explicit context per SDK: each context carries its own
+`cwd`, `dtsFile`, `includePaths`, and `bindingType`, and the server picks the
+context whose `dtsFile` include-graph matches the opened file (`allowAdhocContexts`
+stays true as a fallback). `dtsFile` is relative to the context `cwd`.
+
+```jsonc
+"devicetree.contexts": [
+    {   // kernel
+        "ctxName": "kernel",
+        "cwd": "${workspaceFolder:kernel}",
+        "dtsFile": "arch/arm64/boot/dts/rockchip/rv1126b-xiaoyu-50ipc-v10.dts",
+        "includePaths": [
+            "${workspaceFolder:kernel}/arch/arm64/boot/dts/rockchip",
+            "${workspaceFolder:kernel}/arch/arm/boot/dts",
+            "${workspaceFolder:kernel}/include"
+        ],
+        "bindingType": "DevicetreeOrg",
+        "deviceOrgTreeBindings": [
+            "${workspaceFolder:kernel}/Documentation/devicetree/bindings"
+        ],
+        "deviceOrgBindingsMetaSchema": []
+    },
+    {   // U-Boot: dtsi under u-boot/arch/arm/dts, dt-bindings under u-boot/include
+        "ctxName": "uboot",
+        "cwd": "${workspaceFolder:uboot}/u-boot",
+        "dtsFile": "arch/arm/dts/rv1126b-evb.dts",   // CONFIG_DEFAULT_DEVICE_TREE
+        "includePaths": [
+            "${workspaceFolder:uboot}/u-boot/arch/arm/dts",
+            "${workspaceFolder:uboot}/u-boot/include"
+        ],
+        "bindingType": "DevicetreeOrg",
+        "deviceOrgTreeBindings": [
+            "${workspaceFolder:kernel}/Documentation/devicetree/bindings"
+        ],
+        "deviceOrgBindingsMetaSchema": []
+    }
+]
+```
+
+Tips:
+- U-Boot has no bindings docs of its own; point its `deviceOrgTreeBindings` at
+the kernel's `Documentation/devicetree/bindings`.
+- Find the U-Boot anchor dts from `CONFIG_DEFAULT_DEVICE_TREE` in the uboot
+`configs/*defconfig` (e.g. `rv1126b-evb` -> `arch/arm/dts/rv1126b-evb.dts`).
+- Keep the global defaults as a kernel fallback for ad-hoc contexts.
+
+### Diagnose when it does not work
+
+- After editing settings, **reload the window** (`Developer: Reload Window`).
+- Open the **Output** panel (`Ctrl+Shift+U`) and pick the **DTS Language
+  Server** channel. The `Resolved settings` / context block shows exactly which
+  `cwd`, `includePaths`, and `bindingType` the server actually used — if they
+  are defaults/empty, the config is not being read (see the multi-root gotcha
+  above). Confirm the `${workspaceFolder:<name>}` variables resolved to real
+  paths, and that the opened file matched the intended context's include
+  graph.
+- `DevicetreeOrg` bindings are experimental; if the diagnostics noise outweighs
+  the value, drop `defaultBindingType` and the bindings dirs to keep only
+  syntax/node/label navigation.
 
 ## 7. Verify and maintain
 
