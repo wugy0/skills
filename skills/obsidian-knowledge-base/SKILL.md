@@ -35,6 +35,7 @@ vault 路径作为参数传入（默认示例为 `~/knowledge`）。
 ## 笔记规范
 
 - **YAML frontmatter**（每条笔记顶部）：
+
   ```yaml
   ---
   tags: [v4l2, course, learning]
@@ -42,6 +43,7 @@ vault 路径作为参数传入（默认示例为 `~/knowledge`）。
   aliases: [别名…]
   ---
   ```
+
 - **双链**：用 `[[笔记名]]` 或 `[[路径/笔记|显示名]]` 关联；领域内固定用 `[[../_MOC|返回地图]]`。
 - **MOC**（Map of Content）：每个 Area 建 `_MOC.md` 作为入口，汇总该领域索引与关键链接。
 - **分类索引**：一个领域的多条记录，建一个「索引」笔记用双链列出全部（如 `学习记录.md`、`课程目录.md`）。
@@ -66,7 +68,7 @@ vault 路径作为参数传入（默认示例为 `~/knowledge`）。
 - `.obsidian/workspace.json` / `workspace-mobile.json` 是机器相关的窗口布局，**不入库**（已在 `.gitignore`）；其余 `.obsidian` 配置（app/core-plugins/plugins）可入库以多机同步。
 - 删除文件或清空目录属不可逆操作，先询问用户。
 - 空目录 git 不跟踪：若要保留结构，用 `.gitkeep`。
-- HTML 课程/讲义要进知识库时，用 `html-to-obsidian-markdown` skill 转成 Obsidian 友好的 Markdown，不要直接塞 HTML。
+- HTML 课程/讲义要进知识库时，先转成 Obsidian 友好的 Markdown 再放入，不要直接塞 HTML。
 - 交互式 HTML quiz 无法在 Obsidian 运行，需转成可折叠自测题（`> [!success]`）或静态问答。
 
 ## Verification
