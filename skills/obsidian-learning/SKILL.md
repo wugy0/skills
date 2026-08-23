@@ -70,22 +70,11 @@ created: YYYY-MM-DD
 
 ## Vault 路由
 
-遵循 PARA 变体约定：
-
-```text
-00-Home.md        # 首页枢纽
-01-Inbox/         # 未整理采集物
-02-Areas/         # 长期领域
-03-Projects/      # 有目标的学习项目
-04-Resources/     # 来源、官方文档
-05-Archive/       # 归档
-99-Templates/     # 模板
-```
+目录结构遵循 `obsidian-knowledge-base` 的 PARA 变体约定（`00-Home.md`、`01-Inbox/`、`02-Areas/`、`03-Projects/`、`04-Resources/`、`05-Archive/`、`99-Templates/`），不在此重复定义。
 
 - 明确知道归属的内容直接进对应目录；不确定的进 `01-Inbox/`。
 - 一个学科技能（如嵌入式、V4L2）建 `02-Areas/<领域>/_MOC.md`；一个有截止目标的学习计划建 `03-Projects/<项目>/`。
-- 每次新增笔记后，同步检查所属 `_MOC.md` 是否需要补入口。
-- 路由细节见 `references/vault-routing.md`。
+- 每次新增笔记后，同步检查所属 `_MOC.md` 是否需要补入口；路由细节见 `references/vault-routing.md`。
 
 ## 写笔记的硬性规则
 

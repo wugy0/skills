@@ -1,19 +1,7 @@
 # Vault 路由规则
 
-遵循 PARA 变体约定；本 skill 只在目标目录是 Obsidian
-Vault 时使用（工作目录即 Vault，或用户显式指定路径）。
-
-## 目录约定
-
-```text
-00-Home.md            # 首页 / 枢纽
-01-Inbox/             # 临时收集，未整理
-02-Areas/             # 长期领域（嵌入式 Linux、V4L2、英语…）
-03-Projects/          # 有目标与截止的学习项目
-04-Resources/         # 来源、官方文档、术语
-05-Archive/           # 归档
-99-Templates/         # 模板（{{title}}/{{date}} 占位）
-```
+目录结构遵循 `obsidian-knowledge-base` 的 PARA 变体约定（`00-Home.md`、`01-Inbox/`、`02-Areas/`、`03-Projects/`、`04-Resources/`、`05-Archive/`、`99-Templates/`），本文件只规定学习场景下的路由决策，不重复目录定义。
+本 skill 只在目标目录是 Obsidian Vault 时使用（工作目录即 Vault，或用户显式指定路径）。
 
 ## 归属判断
 

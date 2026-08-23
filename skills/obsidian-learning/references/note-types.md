@@ -4,6 +4,8 @@
 
 ## 公共属性（所有笔记）
 
+基础字段（`title` / `tags` / `aliases`）的写法与 `obsidian-knowledge-base` 的笔记规范一致，不在此重复定义；下表仅列出学习流程必需字段与扩展属性：
+
 ```yaml
 ---
 title: ""            # 人类可读标题，允许中文

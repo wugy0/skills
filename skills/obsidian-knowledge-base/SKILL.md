@@ -34,6 +34,8 @@ vault 路径作为参数传入（默认示例为 `~/knowledge`）。
 
 ## 笔记规范
 
+> Obsidian 标记语法（双链、嵌入、Callout、属性等）的详细规则见独立安装的 `obsidian-markdown` skill 与官方文档（help.obsidian.md）；本 skill 只约定结构、元数据与同步流程。
+
 - **YAML frontmatter**（每条笔记顶部）：
 
   ```yaml
