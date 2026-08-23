@@ -1,0 +1,20 @@
+{
+  "skill_name": "obsidian-learning",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "教我 V4L2 视频采集，我从零开始，不知道从哪里下手。先在知识库里建好学习目标和课程路线，再给我讲第一课（比如打开设备），每课要有自测题和练习。",
+      "expected_output": "在指定 Vault 中产出：1 条 mission 笔记（为什么学/成功标准/约束/范围外）；1 条 moc 课程路线笔记；1 条 lesson 笔记（目标、前置知识、正文、折叠 Callout 自测、练习）。所有笔记 frontmatter 含 title/type/status/created，links 指向真实存在的笔记；自测答案为折叠 Callout，先回忆后核对。"
+    },
+    {
+      "id": 2,
+      "prompt": "把这篇网页文章整理进知识库：https://www.kernel.org/doc/html/latest/driver-api/media/v4l2-open.html 讲的是 V4L2 的 open() 语义。整理成可复习的学习笔记，结论要有出处。",
+      "expected_output": "产出 1 条 source 笔记（source_url/source_kind/accessed/confidence，关键论点带 block ID）与对应 1 条 concept 笔记（是什么/为什么/怎么用/常见误区，来源链接回 source 的 block）；新术语进 glossary；没有把原文没说的话写成事实；来源矛盾时显式保留。"
+    },
+    {
+      "id": 3,
+      "prompt": "我按课程做了 DMA 的实验失败了：描述符链设置完但中断一直不来。帮我记录这次练习，更新掌握程度并安排复习。",
+      "expected_output": "产出 1 条 practice 笔记（做了什么/观察到什么/错在哪/证据/下一步，outcome=failed，只记录真实内容）；新增或更新 1 条 learning-record（mastery 不因失败提升，evidence 指向 practice）；按复习规则给出下一轮 review_after 日期（失败则缩短间隔）；关联 lesson 笔记。"
+    }
+  ]
+}

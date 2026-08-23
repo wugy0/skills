@@ -23,10 +23,11 @@ npx skills update cross-compile-dev-setup -g -y
 ## 可用 Skill
 
 | Skill | 说明 |
-|---|---|
+| --- | --- |
 | [`cross-compile-dev-setup`](skills/cross-compile-dev-setup/SKILL.md) | 为嵌入式 Linux 应用建立 CMake 交叉编译开发流程：preset、qemu-user 测试、GoogleTest、`compile_commands.json` 与 `.clangd`。 |
 | [`embedded-sdk-vscode-navigation`](skills/embedded-sdk-vscode-navigation/SKILL.md) | 为大型嵌入式 Linux SDK 配置 VS Code 导航：Universal Ctags/Ctags Companion、Kconfig、Makefile、Shell、`.config` 与 DeviceTree。 |
 | [`obsidian-knowledge-base`](skills/obsidian-knowledge-base/SKILL.md) | 管理 Git 同步的 Obsidian 知识库：PARA 结构、frontmatter/双链/MOC 规范、中文 Conventional Commits + push 工作流。 |
+| [`obsidian-learning`](skills/obsidian-learning/SKILL.md) | 在 Obsidian 知识库内执行学习闭环：目标→采集→研究→课程→练习→复习，Markdown 原生笔记 + MOC + 间隔排期，Excalidraw 图示可选，独立运行、不依赖其他学习类 skill。 |
 
 ## 目录结构
 
